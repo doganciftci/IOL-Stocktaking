@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="ZXing for JS">
+
+  <title>IOL Serial Number Scanner using ZXing TypeScript | Decoding from camera stream</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"/>
+  <!-- Roboto Font -->
+  <link rel="stylesheet" href="fonts/roboto.css" />
+
+    <!-- Normalize CSS -->
+    <link rel="stylesheet" href="css/normalize.css" />
+
+    <!-- Milligram CSS -->
+    <link rel="stylesheet" href="css/milligram.min.css" />
+
+    <!-- interpretGS1Scan Styles -->
+    <link rel="stylesheet" href="css/interpretGS1ScanStyles.css" />
+
+    <!-- JS Libraries -->
+    <script src="js/GS1DigitalLinkToolkit.js"></script>
+    <script src="js/interpretGS1Scan.js"></script>
+    <script src="js/plausibleGS1DL.js"></script>
+    <script src="js/beep.js"></script>
+
+  <style>
+    .button {
+      background-color: #abaca9; /* Change this to any color you like */
+      color: rgb(49, 5, 209); /* Ensure the text color is readable */
+    }
+    h1.title {
+      font-size:1.5em;
+    }
+
+    footer {
+      margin-top: 2em;
+      padding-top:1em;
+      border-top: thin solid #999;
+    }
+
+    .video-table-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 1em;
+    }
+
+    .video-container {
+      flex: 1;
+    }
+
+    .table-container {
+      flex: 1;
+      padding-left: 2em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table, th, td {
+      border: 1px solid gray;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: center;
+    }
+
+    #exportButton {
+      display: none;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <main class="wrapper" style="padding-top:2em">
+
+    <section class="container" id="demo-content">
+      <h1 class="title">Scan the code on te IOL box with your device's video camera</h1>
+
+      <div>
+        <a class="button" id="startButton">Start</a>
+        <a class="button" id="resetButton">Reset</a>
+      </div>
+
+      <!-- Export Button -->
+      <div>
+        <a class="button" id="exportButton">Export to CSV</a>
+      </div>
+
+      <div class="video-table-container">
+        <!-- Video Container -->
+        <div class="video-container">
+          <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-container">
+          <table id="serialNumbersTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Serial Number</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Serial numbers will be added dynamically here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="sourceSelectPanel" style="display:none">
+        <label for="sourceSelect">Change video source:</label>
+        <select id="sourceSelect" style="max-width:400px">
+        </select>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="text/javascript" src="js/index.min.js"></script>
+  <script type="text/javascript">
+    window.addEventListener('load', function () {
+      let selectedDeviceId;
+      let serialCount = 0; // To keep track of how many serial numbers have been scanned
+      const codeReader = new ZXing.BrowserMultiFormatReader();
+      const exportButton = document.getElementById('exportButton');
+      const table = document.getElementById('serialNumbersTable').getElementsByTagName('tbody')[0];
+
+      console.log('ZXing code reader initialized');
+
+      codeReader.getVideoInputDevices()
+        .then((videoInputDevices) => {
+          const sourceSelect = document.getElementById('sourceSelect');
+          selectedDeviceId = videoInputDevices[0].deviceId;
+          if (videoInputDevices.length >= 1) {
+            let i = 0;
+            let s = null;
+            videoInputDevices.forEach((element) => {
+              const sourceOption = document.createElement('option');
+              sourceOption.text = element.label;
+              if ((element.label.indexOf("rear") > -1) || (element.label.indexOf("back") > -1)) {
+                s = i;
+              }
+              sourceOption.value = element.deviceId;
+              sourceSelect.appendChild(sourceOption);
+              i++;
+            });
+            if (s !== null) {
+              sourceSelect.selectedIndex = s;
+              selectedDeviceId = sourceSelect.value;
+            }
+
+            sourceSelect.onchange = () => {
+              selectedDeviceId = sourceSelect.value;
+            };
+
+            const sourceSelectPanel = document.getElementById('sourceSelectPanel');
+            sourceSelectPanel.style.display = 'block';
+          }
+
+          document.getElementById('startButton').addEventListener('click', () => {
+            codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+              if (result) {
+                console.log(result);
+
+                // Replace GS character with "<GS>"
+                let re = new RegExp(String.fromCharCode(29), "g");
+                let resultText = result.text.replace(re, "<GS>");
+
+                // Find and log the serial number (SN)
+                let snRegex = /\(SN\)(\w+)/; // This regex looks for '(SN)' followed by one or more alphanumeric characters
+                let snMatch = resultText.match(snRegex); // Find the match in the resultText
+
+                if (snMatch && snMatch[1]) {
+                  let serialNumber = snMatch[1]; // Extract the serial number
+                  console.log('Scanned Serial Number:', serialNumber); // Log the serial number
+
+                  // Increment the serial count
+                  serialCount++;
+
+                  // Add new row to the table
+                  let newRow = table.insertRow();
+                  let cell1 = newRow.insertCell(0);
+                  let cell2 = newRow.insertCell(1);
+
+                  // Add the data to the new row
+                  cell1.textContent = serialCount;
+                  cell2.textContent = serialNumber;
+
+                  // Play beep sound
+                  beep.play();
+
+                  // Show the export button after first scan
+                  exportButton.style.display = 'block';
+                } else {
+                  console.log('Serial Number not found.');
+                }
+              }
+              if (err && !(err instanceof ZXing.NotFoundException)) {
+                console.error(err);
+              }
+            });
+            console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
+          });
+
+          document.getElementById('resetButton').addEventListener('click', () => {
+            codeReader.reset();
+            // Clear table rows
+            table.innerHTML = '';
+            serialCount = 0; // Reset serial count
+            console.log('Reset.');
+            // Hide export button when reset is pressed
+            exportButton.style.display = 'none';
+          });
+
+          exportButton.addEventListener('click', () => {
+            exportTableToCSV('serial_numbers.csv');
+          });
+
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+
+      // Function to export table content to CSV
+      function exportTableToCSV(filename) {
+        let csv = [];
+        let rows = document.querySelectorAll("#serialNumbersTable tr");
+
+        for (let i = 0; i < rows.length; i++) {
+          let row = [], cols = rows[i].querySelectorAll("td, th");
+
+          cols.forEach(function(col) {
+            row.push(col.innerText);
+          });
+
+          csv.push(row.join(","));        
+        }
+
+        // Download CSV
+        downloadCSV(csv.join("\n"), filename);
+      }
+
+      function downloadCSV(csv, filename) {
+        let csvFile;
+        let downloadLink;
+
+        // CSV file
+        csvFile = new Blob([csv], {type: "text/csv"});
+
+        // Download link
+        downloadLink = document.createElement("a");
+
+        // File name
+        downloadLink.download = filename;
+
+        // Create a link to the file
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+
+        // Hide link
+        downloadLink.style.display = "none";
+
+        // Add the link to DOM
+        document.body.appendChild(downloadLink);
+
+        // Click download link
+        downloadLink.click();
+      }
+
+    });
+  </script>
+
+</body>
+
+</html>
