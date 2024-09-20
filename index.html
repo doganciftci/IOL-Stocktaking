@@ -136,7 +136,7 @@
 
       console.log('ZXing code reader initialized');
 
-      codeReader.getVideoInputDevices()
+      codeReader.listVideoInputDevices()
         .then((videoInputDevices) => {
           const sourceSelect = document.getElementById('sourceSelect');
           selectedDeviceId = videoInputDevices[0].deviceId;
@@ -174,14 +174,13 @@
                 // Replace GS character with "<GS>"
                 let re = new RegExp(String.fromCharCode(29), "g");
                 let resultText = result.text.replace(re, "<GS>");
-
+                
                 // Find and log the serial number (SN)
-                let snRegex = /\(SN\)(\w+)/; // This regex looks for '(SN)' followed by one or more alphanumeric characters
-                let snMatch = resultText.match(snRegex); // Find the match in the resultText
-
-                if (snMatch && snMatch[1]) {
-                  let serialNumber = snMatch[1]; // Extract the serial number
-                  console.log('Scanned Serial Number:', serialNumber); // Log the serial number
+                //let snRegex = /\(SN\)(\w+)/; // This regex looks for '(SN)' followed by one or more alphanumeric characters
+                //let snMatch = resultText.match(snRegex); // Find the match in the resultText
+                let snMatch= resultText.substring(38);
+                if (snMatch) {
+                  console.log('Scanned Serial Number:', snMatch); // Log the serial number
 
                   // Increment the serial count
                   serialCount++;
@@ -193,7 +192,7 @@
 
                   // Add the data to the new row
                   cell1.textContent = serialCount;
-                  cell2.textContent = serialNumber;
+                  cell2.textContent = snMatch;
 
                   // Play beep sound
                   beep.play();
