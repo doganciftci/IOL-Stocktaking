@@ -171,7 +171,25 @@
                     });
                     console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
                 });
-                // (reset and export button functionality omitted for brevity)
+                // Reset button functionality
+            document.getElementById('resetButton').addEventListener('click', () => {
+                // Clear the table, except the header row
+                table.innerHTML = ''; 
+
+                // Reset serial number counter and scanned serial numbers set
+                serialCount = 0;
+                scannedSerialNumbers.clear();
+
+                // Hide the export button
+                exportButton.style.display = 'none';
+
+                // Optionally stop the camera (if needed)
+                codeReader.reset();
+
+                // Optionally reset video display or other UI elements
+                const video = document.getElementById('video');
+                video.srcObject = null; // Stops video stream
+            });
             })
             .catch((err) => {
                 console.error(err);
