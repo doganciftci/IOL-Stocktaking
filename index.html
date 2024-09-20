@@ -131,7 +131,6 @@
   <script type="text/javascript" src="js/index.min.js"></script>
   <script type="text/javascript">
     window.addEventListener('load', function () {
-        let selectedDeviceId;
         let serialCount = 0; 
         const codeReader = new ZXing.BrowserMultiFormatReader();
         const exportButton = document.getElementById('exportButton');
@@ -178,7 +177,7 @@
                             console.error(err);
                         }
                     });
-                    console.log(`Started continuous decode from camera with id ${selectedDeviceId}`);
+                    console.log(`Started continuous decode from camera with id ${videoInputDevices[0].deviceId}`);
                 });
                 // Reset button functionality
             document.getElementById('resetButton').addEventListener('click', () => {
