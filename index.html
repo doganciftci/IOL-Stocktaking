@@ -194,7 +194,35 @@
                 messageContainer.style.display = 'none'; // Hide after 2 seconds
             }, 2000);
         }
-        // (CSV export functions omitted for brevity)
+        // CSV export functions
+        function exportTableToCSV(filename) {
+            let csv = [];
+            let rows = document.querySelectorAll("#serialNumbersTable tr");
+            for (let i = 0; i < rows.length; i++) {
+                let row = [], cols = rows[i].querySelectorAll("td, th");
+                cols.forEach(function(col) {
+                    row.push(col.innerText);
+                });
+                csv.push(row.join(","));
+            }
+            downloadCSV(csv.join("\n"), filename);
+        }
+
+        function downloadCSV(csv, filename) {
+            let csvFile;
+            let downloadLink;
+            csvFile = new Blob([csv], {type: "text/csv"});
+            downloadLink = document.createElement("a");
+            downloadLink.download = filename;
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+        }
+
+        exportButton.addEventListener('click', () => {
+            exportTableToCSV('serial_numbers.csv');
+        });
     });
 </script>
 
