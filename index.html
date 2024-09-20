@@ -46,6 +46,7 @@
       justify-content: space-between;
       align-items: flex-start;
       margin-top: 1em;
+      
     }
 
     .video-container {
@@ -54,7 +55,7 @@
 
     .table-container {
       flex: 1;
-      padding-left: 2em;
+      /* padding-left: 2em; */
     }
 
     table {
@@ -63,7 +64,8 @@
     }
 
     table, th, td {
-      border: 1px solid gray;
+      width: 300px;
+      border: 1px solid rgb(49, 5, 209);
     }
 
     th, td {
@@ -73,6 +75,15 @@
 
     #exportButton {
       display: none;
+      width: 300px;
+    }
+    #startButton
+    {
+      width: 148px;
+    }
+    #resetButton
+    {
+      width: 148px;
     }
   </style>
 
@@ -95,34 +106,28 @@
         <a class="button" id="exportButton">Export to CSV</a>
       </div>
 
-      <div class="video-table-container">
-        <!-- Video Container -->
-        <div class="video-container">
-          <video id="video" width="300" height="200" style="border: 1px solid gray"></video>
-        </div>
-        <div id="messageContainer" style="color: red; display: none; margin-top: 10px;"></div>
-
-        <!-- Table Container -->
-        <div class="table-container">
-          <table id="serialNumbersTable">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Serial Number</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Serial numbers will be added dynamically here -->
-            </tbody>
-          </table>
-        </div>
+      
+      <!-- Video Container -->
+      <div class="video-container">
+        <video id="video" width="300" height="200" style="border: 1px solid rgb(49, 5, 209)"></video>
       </div>
+      <div id="messageContainer" style="color: red; display: none; margin-top: 10px;"></div>
 
-      <div id="sourceSelectPanel" style="display:none">
-        <label for="sourceSelect">Change video source:</label>
-        <select id="sourceSelect" style="max-width:400px">
-        </select>
+      <!-- Table Container -->
+      <div class="table-container">
+        <table id="serialNumbersTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Serial Number</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Serial numbers will be added dynamically here -->
+          </tbody>
+        </table>
       </div>
+      
     </section>
 
   </main>
@@ -141,11 +146,8 @@
         console.log('ZXing code reader initialized');
         codeReader.listVideoInputDevices()
             .then((videoInputDevices) => {
-                const sourceSelect = document.getElementById('sourceSelect');
-                selectedDeviceId = videoInputDevices[0].deviceId;
-                // (existing code for device selection omitted for brevity)
                 document.getElementById('startButton').addEventListener('click', () => {
-                    codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+                    codeReader.decodeFromVideoDevice(videoInputDevices[0].deviceId, 'video', (result, err) => {
                         if (result) {
                             console.log(result);
 
