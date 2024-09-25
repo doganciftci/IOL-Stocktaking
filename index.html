@@ -156,7 +156,7 @@
 
             let re = new RegExp(String.fromCharCode(29), "g");
             let resultText = result.text.replace(re, "<GS>");
-            
+            displayInterpretation(result.text, document.getElementById('interpretation'));
             // Extracting values based on labels in the result text
             let snMatch = resultText.substring(38); // Serial number extraction
             
@@ -168,7 +168,7 @@
                 if (!scannedSerialNumbers.has(serialNumber)) {
                     console.log('Scanned Serial Number:', serialNumber);
                     scannedSerialNumbers.add(serialNumber); 
-                    displayInterpretation(result.text, document.getElementById('interpretation'));
+                    
 
                     serialCount++;
                     let newRow = table.insertRow();
@@ -182,17 +182,32 @@
                     cell2.textContent = serialNumber; // SERIAL number
                     
                     const interpretationDiv = document.getElementById('interpretation');
-
-                    // Get the div containing all the identifiers
+                    //Why is identifiersDiv null???
                     const identifiersDiv = document.getElementById('identifiers');
+                    const aiLabels = identifiersDiv.querySelectorAll(".aiLabel");
 
-                    // Find the aiValue for the aiLabel "GTIN"
-                    const gtinElement = identifiersDiv.querySelector("p .aiLabel:contains('GTIN') + .aiValue");
-                    const gtinValue = gtinElement ? gtinElement.textContent : '';
+                    let gtinValue = '';
+                    let prodDateValue = '';
+                    let expiryDateValue = '';
 
-                    cell3.textContent = gtinValue.text;
-                    cell4.textContent = ''
-                    cell5.textContent = ''
+                    aiLabels.forEach((label) => {
+                        if (label.textContent === 'GTIN') {
+                            gtinValue = label.nextElementSibling.nextElementSibling.innerText;
+                        }
+                        if (label.textContent === 'PROD DATE') {
+                            prodDateValue = label.nextElementSibling.nextElementSibling.innerText;
+                        }
+                        else if (label.textContent === 'USE BY OR EXPIRY') {
+                            expiryDateValue = label.nextElementSibling.nextElementSibling.innerText;
+                        }
+                        else if (label.textContent==='SERIAL'){
+
+                        }
+                    });
+
+                    cell3.textContent = gtinValue || '';
+                    cell4.textContent = prodDateValue || '';
+                    cell5.textContent = expiryDateValue || '';
 
                     beep.play();
 
