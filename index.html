@@ -11,8 +11,11 @@
   <link rel="stylesheet" href="fonts/roboto.css" />
   <!-- Milligram CSS -->
   <link rel="stylesheet" href="css/milligram.min.css" />
+  <link rel="stylesheet" href="css/interpretGS1ScanStyles.css" />
   <script src="js/beep.js"></script>
-
+  <script src="js/GS1DigitalLinkToolkit.js"></script>
+  <script src="js/interpretGS1Scan.js"></script>
+  <script src="js/plausibleGS1DL.js"></script>
   <style>
     .button 
     {
@@ -116,6 +119,9 @@
             <tr>
               <th>#</th>
               <th>Serial Number</th>
+              <th>GTIN</th> <!-- New column for GTIN -->
+              <th>PROD DATE</th> <!-- New column for PROD DATE -->
+              <th>USE BY OR EXPIRY</th> <!-- New column for USE BY OR EXPIRY -->
             </tr>
           </thead>
           <tbody>
@@ -123,6 +129,8 @@
           </tbody>
         </table>
       </div>
+      <label for="interpretation">Interpretation:</label>
+      <div id="interpretation"></div>
       
     </section>
 
@@ -141,44 +149,69 @@
         console.log('ZXing code reader initialized');
         codeReader.listVideoInputDevices()
             .then((videoInputDevices) => {
-                document.getElementById('startButton').addEventListener('click', () => {
-                    codeReader.decodeFromVideoDevice(videoInputDevices[0].deviceId, 'video', (result, err) => {
-                        if (result) {
-                            console.log(result);
+              document.getElementById('startButton').addEventListener('click', () => {
+    codeReader.decodeFromVideoDevice(videoInputDevices[0].deviceId, 'video', (result, err) => {
+        if (result) {
+            console.log(result);
 
-                            let re = new RegExp(String.fromCharCode(29), "g");
-                            let resultText = result.text.replace(re, "<GS>");
-                            let snMatch = resultText.substring(38);
+            let re = new RegExp(String.fromCharCode(29), "g");
+            let resultText = result.text.replace(re, "<GS>");
+            
+            // Extracting values based on labels in the result text
+            let snMatch = resultText.substring(38); // Serial number extraction
+            
 
-                            if (snMatch) {
-                                if (!scannedSerialNumbers.has(snMatch)) {
-                                    console.log('Scanned Serial Number:', snMatch);
-                                    scannedSerialNumbers.add(snMatch); 
+            // Check if serial number and other fields were found
+            if (snMatch) {
+                let serialNumber = snMatch;
 
-                                    serialCount++;
-                                    let newRow = table.insertRow();
-                                    let cell1 = newRow.insertCell(0);
-                                    let cell2 = newRow.insertCell(1);
-                                    cell1.textContent = serialCount;
-                                    cell2.textContent = snMatch;
+                if (!scannedSerialNumbers.has(serialNumber)) {
+                    console.log('Scanned Serial Number:', serialNumber);
+                    scannedSerialNumbers.add(serialNumber); 
+                    displayInterpretation(result.text, document.getElementById('interpretation'));
 
-                                    beep.play();
+                    serialCount++;
+                    let newRow = table.insertRow();
+                    let cell1 = newRow.insertCell(0);
+                    let cell2 = newRow.insertCell(1);
+                    let cell3 = newRow.insertCell(2); 
+                    let cell4 = newRow.insertCell(3); 
+                    let cell5 = newRow.insertCell(4);
 
-                                    exportButton.style.display = 'block';
-                                } else {
-                                    console.log('Duplicate Serial Number detected:', snMatch);
-                                    showMessage('This serial number is already scanned and can be found in the table!'); // Show duplicate message
-                                }
-                            } else {
-                                console.log('Serial Number not found.');
-                            }
-                        }
-                        if (err && !(err instanceof ZXing.NotFoundException)) {
-                            console.error(err);
-                        }
-                    });
-                    console.log(`Started continuous decode from camera with id ${videoInputDevices[0].deviceId}`);
-                });
+                    cell1.textContent = serialCount;
+                    cell2.textContent = serialNumber; // SERIAL number
+                    
+                    const interpretationDiv = document.getElementById('interpretation');
+
+                    // Get the div containing all the identifiers
+                    const identifiersDiv = document.getElementById('identifiers');
+
+                    // Find the aiValue for the aiLabel "GTIN"
+                    const gtinElement = identifiersDiv.querySelector("p .aiLabel:contains('GTIN') + .aiValue");
+                    const gtinValue = gtinElement ? gtinElement.textContent : '';
+
+                    cell3.textContent = gtinValue.text;
+                    cell4.textContent = ''
+                    cell5.textContent = ''
+
+                    beep.play();
+
+                    exportButton.style.display = 'block';
+                } else {
+                    console.log('Duplicate Serial Number detected:', serialNumber);
+                    showMessage('This serial number is already scanned and can be found in the table!'); // Show duplicate message
+                }
+            } else {
+                console.log('Serial Number not found.');
+            }
+        }
+        if (err && !(err instanceof ZXing.NotFoundException)) {
+            console.error(err);
+        }
+    });
+    console.log(`Started continuous decode from camera with id ${videoInputDevices[0].deviceId}`);
+});
+
                 // Reset button functionality
             document.getElementById('resetButton').addEventListener('click', () => {
                 // Clear the table, except the header row
