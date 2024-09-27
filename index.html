@@ -116,21 +116,21 @@
             <tr>
               <th>#</th>
               <th>Serial Number</th>
-                <th>GTIN</th> <!-- New column for GTIN -->
-                <th>PROD DATE</th> <!-- New column for PROD DATE -->
-                <th>USE BY OR EXPIRY</th> <!-- New column for USE BY OR EXPIRY -->
-              </tr>
-              </thead>
-                <tbody>
-                <!-- Serial numbers will be added dynamically here -->
-                </tbody>
-              </tbody>
+              <!-- <th>GTIN</th> 
+              <th>PROD DATE</th> 
+              <th>USE BY OR EXPIRY</th>  
+              -->
+            </tr>
+          </thead>
+          <tbody>
             <!-- Serial numbers will be added dynamically here -->
           </tbody>
         </table>
       </div>
+      <!-- 
       <label for="interpretation">Interpretation:</label>
-      <div id="interpretation"></div>
+      <div id="interpretation"></div> 
+      -->
       
     </section>
 
@@ -156,7 +156,9 @@
 
             let re = new RegExp(String.fromCharCode(29), "g");
             let resultText = result.text.replace(re, "<GS>");
-            displayInterpretation(result.text, document.getElementById('interpretation'));
+            /* 
+            displayInterpretation(result.text, document.getElementById('interpretation')); 
+            */
             // Extracting values based on labels in the result text
             let snMatch = resultText.substring(38); // Serial number extraction
             
@@ -174,13 +176,16 @@
                     let newRow = table.insertRow();
                     let cell1 = newRow.insertCell(0);
                     let cell2 = newRow.insertCell(1);
+                    /* 
                     let cell3 = newRow.insertCell(2); 
                     let cell4 = newRow.insertCell(3); 
-                    let cell5 = newRow.insertCell(4);
+                    let cell5 = newRow.insertCell(4); 
+                    */
 
                     cell1.textContent = serialCount;
                     cell2.textContent = serialNumber; // SERIAL number
                     
+                    /*
                     const interpretationDiv = document.getElementById('interpretation');
                     //Why is identifiersDiv null???
                     const identifiersDiv = document.getElementById('identifiers');
@@ -208,7 +213,7 @@
                     cell3.textContent = gtinValue || '';
                     cell4.textContent = prodDateValue || '';
                     cell5.textContent = expiryDateValue || '';
-
+                    */
                     beep.play();
 
                     exportButton.style.display = 'block';
