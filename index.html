@@ -17,26 +17,24 @@
   <script src="js/interpretGS1Scan.js"></script>
   <script src="js/plausibleGS1DL.js"></script>
   <style>
-    .button 
-    {
+    .button {
       background-color: #abaca9; /* Background color */
       color: rgb(49, 5, 209); /* Text color */
       border: 2px solid rgb(49, 5, 209); /* Border color and width */
       border-radius: 5px; /* Optional: for rounded corners */
     }
-    .button:hover 
-    {
+    .button:hover {
       background-color: #8f908d; /* Slightly darker shade */
       color: rgb(255, 255, 255); /* White text on hover */
     }
 
     h1.title {
-      font-size:1.5em;
+      font-size: 1.5em;
     }
 
     footer {
       margin-top: 2em;
-      padding-top:1em;
+      padding-top: 1em;
       border-top: thin solid #999;
     }
 
@@ -45,7 +43,6 @@
       justify-content: space-between;
       align-items: flex-start;
       margin-top: 1em;
-      
     }
 
     .video-container {
@@ -76,12 +73,10 @@
       display: none;
       width: 300px;
     }
-    #startButton
-    {
+    #startButton {
       width: 148px;
     }
-    #resetButton
-    {
+    #resetButton {
       width: 148px;
     }
   </style>
@@ -102,7 +97,6 @@
         <a class="button" id="exportButton">Export to CSV</a>
       </div>
 
-      
       <!-- Video Container -->
       <div class="video-container">
         <video id="video" width="300" height="200" style="border: 1px solid rgb(49, 5, 209)"></video>
@@ -131,46 +125,42 @@
       <label for="interpretation">Interpretation:</label>
       <div id="interpretation"></div> 
       -->
-      
     </section>
-
   </main>
 
   <script type="text/javascript" src="js/index.min.js"></script>
   <script type="text/javascript">
     window.addEventListener('load', function () {
-        let serialCount = 0; 
-        const codeReader = new ZXing.BrowserMultiFormatReader();
-        const exportButton = document.getElementById('exportButton');
-        const table = document.getElementById('serialNumbersTable').getElementsByTagName('tbody')[0];
-        const scannedSerialNumbers = new Set(); 
-        const messageContainer = document.getElementById('messageContainer'); // Message container
+      let serialCount = 0; 
+      const codeReader = new ZXing.BrowserMultiFormatReader();
+      const exportButton = document.getElementById('exportButton');
+      const table = document.getElementById('serialNumbersTable').getElementsByTagName('tbody')[0];
+      const scannedSerialNumbers = new Set(); 
+      const messageContainer = document.getElementById('messageContainer'); // Message container
 
-        console.log('ZXing code reader initialized');
-        codeReader.listVideoInputDevices()
-            .then((videoInputDevices) => {
-              document.getElementById('startButton').addEventListener('click', () => {
-    codeReader.decodeFromVideoDevice(videoInputDevices[0].deviceId, 'video', (result, err) => {
-        if (result) {
-            console.log(result);
+      console.log('ZXing code reader initialized');
+      codeReader.listVideoInputDevices()
+        .then((videoInputDevices) => {
+          document.getElementById('startButton').addEventListener('click', () => {
+            codeReader.decodeFromVideoDevice(videoInputDevices[0].deviceId, 'video', (result, err) => {
+              if (result) {
+                console.log(result);
 
-            let re = new RegExp(String.fromCharCode(29), "g");
-            let resultText = result.text.replace(re, "<GS>");
-            /* 
-            displayInterpretation(result.text, document.getElementById('interpretation')); 
-            */
-            // Extracting values based on labels in the result text
-            let snMatch = resultText.substring(38); // Serial number extraction
-            
+                let re = new RegExp(String.fromCharCode(29), "g");
+                let resultText = result.text.replace(re, "<GS>");
+                /* 
+                displayInterpretation(result.text, document.getElementById('interpretation')); 
+                */
+                // Extracting values based on labels in the result text
+                let snMatch = resultText.substring(38); // Serial number extraction
 
-            // Check if serial number and other fields were found
-            if (snMatch) {
-                let serialNumber = snMatch;
+                // Check if serial number and other fields were found
+                if (snMatch) {
+                  let serialNumber = snMatch;
 
-                if (!scannedSerialNumbers.has(serialNumber)) {
+                  if (!scannedSerialNumbers.has(serialNumber)) {
                     console.log('Scanned Serial Number:', serialNumber);
                     scannedSerialNumbers.add(serialNumber); 
-                    
 
                     serialCount++;
                     let newRow = table.insertRow();
@@ -184,7 +174,7 @@
 
                     cell1.textContent = serialCount;
                     cell2.textContent = serialNumber; // SERIAL number
-                    
+
                     /*
                     const interpretationDiv = document.getElementById('interpretation');
                     //Why is identifiersDiv null???
@@ -196,18 +186,18 @@
                     let expiryDateValue = '';
 
                     aiLabels.forEach((label) => {
-                        if (label.textContent === 'GTIN') {
-                            gtinValue = label.nextElementSibling.nextElementSibling.innerText;
-                        }
-                        if (label.textContent === 'PROD DATE') {
-                            prodDateValue = label.nextElementSibling.nextElementSibling.innerText;
-                        }
-                        else if (label.textContent === 'USE BY OR EXPIRY') {
-                            expiryDateValue = label.nextElementSibling.nextElementSibling.innerText;
-                        }
-                        else if (label.textContent==='SERIAL'){
+                      if (label.textContent === 'GTIN') {
+                        gtinValue = label.nextElementSibling.nextElementSibling.innerText;
+                      }
+                      if (label.textContent === 'PROD DATE') {
+                        prodDateValue = label.nextElementSibling.nextElementSibling.innerText;
+                      }
+                      else if (label.textContent === 'USE BY OR EXPIRY') {
+                        expiryDateValue = label.nextElementSibling.nextElementSibling.innerText;
+                      }
+                      else if (label.textContent==='SERIAL'){
 
-                        }
+                      }
                     });
 
                     cell3.textContent = gtinValue || '';
@@ -217,82 +207,83 @@
                     beep.play();
 
                     exportButton.style.display = 'block';
-                } else {
+                  } else {
                     console.log('Duplicate Serial Number detected:', serialNumber);
                     showMessage('This serial number is already scanned and can be found in the table!'); // Show duplicate message
+                  }
+                } else {
+                  console.log('Serial Number not found.');
                 }
-            } else {
-                console.log('Serial Number not found.');
-            }
-        }
-        if (err && !(err instanceof ZXing.NotFoundException)) {
-            console.error(err);
-        }
-    });
-    console.log(`Started continuous decode from camera with id ${videoInputDevices[0].deviceId}`);
-});
-
-                // Reset button functionality
-            document.getElementById('resetButton').addEventListener('click', () => {
-                // Clear the table, except the header row
-                table.innerHTML = ''; 
-
-                // Reset serial number counter and scanned serial numbers set
-                serialCount = 0;
-                scannedSerialNumbers.clear();
-
-                // Hide the export button
-                exportButton.style.display = 'none';
-
-                // Optionally stop the camera (if needed)
-                codeReader.reset();
-
-                // Optionally reset video display or other UI elements
-                const video = document.getElementById('video');
-                video.srcObject = null; // Stops video stream
-            });
-            })
-            .catch((err) => {
+              }
+              if (err && !(err instanceof ZXing.NotFoundException)) {
                 console.error(err);
+              }
             });
+            console.log(`Started continuous decode from camera with id ${videoInputDevices[0].deviceId}`);
+          });
 
-        function showMessage(message) {
-            messageContainer.textContent = message;
-            messageContainer.style.display = 'block'; // Show the message
-            setTimeout(function() {
-                messageContainer.style.display = 'none'; // Hide after 2 seconds
-            }, 2000);
-        }
-        // CSV export functions
-        function exportTableToCSV(filename) {
-            let csv = [];
-            let rows = document.querySelectorAll("#serialNumbersTable tr");
-            for (let i = 0; i < rows.length; i++) {
-                let row = [], cols = rows[i].querySelectorAll("td, th");
-                cols.forEach(function(col) {
-                    row.push(col.innerText);
-                });
-                csv.push(row.join(","));
-            }
-            downloadCSV(csv.join("\n"), filename);
-        }
+          // Reset button functionality
+          document.getElementById('resetButton').addEventListener('click', () => {
+            // Clear the table, except the header row
+            table.innerHTML = ''; 
 
-        function downloadCSV(csv, filename) {
-            let csvFile;
-            let downloadLink;
-            csvFile = new Blob([csv], {type: "text/csv"});
-            downloadLink = document.createElement("a");
-            downloadLink.download = filename;
-            downloadLink.href = window.URL.createObjectURL(csvFile);
-            downloadLink.style.display = "none";
-            document.body.appendChild(downloadLink);
-            downloadLink.click();
-        }
+            // Reset serial number counter and scanned serial numbers set
+            serialCount = 0;
+            scannedSerialNumbers.clear();
 
-        exportButton.addEventListener('click', () => {
-            exportTableToCSV('serial_numbers.csv');
+            // Hide the export button
+            exportButton.style.display = 'none';
+
+            // Optionally stop the camera (if needed)
+            codeReader.reset();
+
+            // Optionally reset video display or other UI elements
+            const video = document.getElementById('video');
+            video.srcObject = null; // Stops video stream
+          });
+        })
+        .catch((err) => {
+          console.error(err);
         });
+
+      function showMessage(message) {
+        messageContainer.textContent = message;
+        messageContainer.style.display = 'block'; // Show the message
+        setTimeout(function() {
+          messageContainer.style.display = 'none'; // Hide after 2 seconds
+        }, 2000);
+      }
+
+      // CSV export functions
+      function exportTableToCSV(filename) {
+        let csv = [];
+        let rows = document.querySelectorAll("#serialNumbersTable tr");
+        for (let i = 0; i<rows.length; i++) {
+          let row = [], cols = rows[i].querySelectorAll("td, th");
+          cols.forEach(function(col) {
+            row.push(col.innerText);
+          });
+          csv.push(row.join(","));
+        }
+        downloadCSV(csv.join("\n"), filename);
+      }
+
+      function downloadCSV(csv, filename) {
+        let csvFile;
+        let downloadLink;
+        csvFile = new Blob([csv], {type: "text/csv"});
+        downloadLink = document.createElement("a");
+        downloadLink.download = filename;
+        downloadLink.href = window.URL.createObjectURL(csvFile);
+        downloadLink.style.display = "none";
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+      }
+
+      exportButton.addEventListener('click', () => {
+        exportTableToCSV('serial_numbers.csv');
+      });
     });
-</script>
+  </script>
 </body>
 </html>
